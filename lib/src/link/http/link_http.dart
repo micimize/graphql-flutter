@@ -150,6 +150,7 @@ Future<BaseRequest> _prepareRequest(
   Map<String, String> httpHeaders,
 ) async {
   final Map<String, File> fileMap = _getFileMap(body);
+
   if (fileMap.isEmpty) {
     final Request r = Request('post', Uri.parse(url));
     r.headers.addAll(httpHeaders);

@@ -184,9 +184,6 @@ class QueryManager {
   }
 
   /// Push changed data from cache to query streams
-  ///
-  /// rebroadcast queries inherit `optimistic`
-  /// from the triggering state-change
   void rebroadcastQueries() {
     for (ObservableQuery query in queries.values) {
       if (query.isRebroadcastSafe) {
