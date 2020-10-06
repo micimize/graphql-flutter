@@ -2,9 +2,9 @@
 
 v4 aims to solve a number of sore spots, particularly with caching, largely by leveraging libraries from the [gql-dart](https://github.com/gql-dart) ecosystem.
 
-There has also been an effort to add more API docs and docs in general, particularly in the [`graphql` README](./packages/graphql/README.md).
+There has also been an effort to add more API docs and docs in general, particularly in the [`graphql` README](./packages/graphql).
 
-> **NB** Note that if you are depending on `PersistedQueriesLink`, [its migration is not yet complete](./graphql/README.md#persistedquerieslink-experimental-warning-out-of-service-warning)
+> **NB** Note that if you are depending on `PersistedQueriesLink`, [its migration is not yet complete](./packages/graphql/graphql#persistedquerieslink-experimental-warning-out-of-service-warning)
 
 - [Migrating from v3 – v4](#migrating-from-v3--v4)
   - [Cache overhaul](#cache-overhaul)
@@ -162,4 +162,4 @@ class MyQuery {
 
 [local state management]: https://www.apollographql.com/docs/tutorial/local-state/#update-local-data
 [`typepolicies`]: https://www.apollographql.com/docs/react/caching/cache-configuration/#the-typepolicy-type
-[direct cache access]: ./graphql/README.md#direct-cache-access-api
+[direct cache access]: ./packages/graphql#direct-cache-access-api
