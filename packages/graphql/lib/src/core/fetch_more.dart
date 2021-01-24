@@ -37,9 +37,12 @@ Future<QueryResult> fetchMoreImplementation(
     'or the previous QueryOptions must be supplied!',
   );
 
+  final errorPolicy =
+      fetchMoreOptions.errorPolicy ?? originalOptions.errorPolicy;
+
   final combinedOptions = QueryOptions(
     fetchPolicy: FetchPolicy.noCache,
-    errorPolicy: originalOptions.errorPolicy,
+    errorPolicy: errorPolicy,
     document: document,
     variables: {
       ...originalOptions.variables,
@@ -49,54 +52,59 @@ Future<QueryResult> fetchMoreImplementation(
 
   QueryResult fetchMoreResult = await queryManager.query(combinedOptions);
 
-  try {
-    // combine the query with the new query, using the function provided by the user
-    final data = fetchMoreOptions.updateQuery(
-      previousResult.data,
-      fetchMoreResult.data,
-    );
-
-    assert(
-      data != null,
-      'updateQuery result cannot be null:\n'
-      '  previousResultData: ${previousResult.data},\n'
-      ' fetchMoreResultData: ${fetchMoreResult.data}',
-    );
-    fetchMoreResult.data = data;
-
-    if (originalOptions.fetchPolicy != FetchPolicy.noCache) {
-      queryManager.attemptCacheWriteFromClient(
-        request,
-        data,
-        fetchMoreResult,
-        writeQuery: (req, data) => queryManager.cache.writeQuery(
-          req,
-          data: data,
-        ),
-      );
-    }
-
-    // will add to a stream with `queryId` and rebroadcast if appropriate
-    queryManager.addQueryResult(
-      request,
-      queryId,
-      fetchMoreResult,
-    );
-  } catch (error) {
-    if (fetchMoreResult.hasException) {
-      // because the updateQuery failure might have been because of these errors,
-      // we just add them to the old errors
-      previousResult.exception = coalesceErrors(
-        exception: previousResult.exception,
-        graphqlErrors: fetchMoreResult.exception.graphqlErrors,
-        linkException: fetchMoreResult.exception.linkException,
-      );
-      return previousResult;
-    } else {
-      // TODO merge results OperationException
-      rethrow;
-    }
+  if (fetchMoreResult.hasException && errorPolicy == ErrorPolicy.none) {
+    throw fetchMoreResult.exception;
   }
+
+  if (fetchMoreResult.hasException)
+    try {
+      // combine the query with the new query, using the function provided by the user
+      final data = fetchMoreOptions.updateQuery(
+        previousResult.data,
+        fetchMoreResult.data,
+      );
+
+      assert(
+        data != null,
+        'updateQuery result cannot be null:\n'
+        '  previousResultData: ${previousResult.data},\n'
+        ' fetchMoreResultData: ${fetchMoreResult.data}',
+      );
+      fetchMoreResult.data = data;
+
+      if (originalOptions.fetchPolicy != FetchPolicy.noCache) {
+        queryManager.attemptCacheWriteFromClient(
+          request,
+          data,
+          fetchMoreResult,
+          writeQuery: (req, data) => queryManager.cache.writeQuery(
+            req,
+            data: data,
+          ),
+        );
+      }
+
+      // will add to a stream with `queryId` and rebroadcast if appropriate
+      queryManager.addQueryResult(
+        request,
+        queryId,
+        fetchMoreResult,
+      );
+    } catch (error) {
+      if (fetchMoreResult.hasException) {
+        // because the updateQuery failure might have been because of these errors,
+        // we just add them to the old errors
+        previousResult.exception = coalesceErrors(
+          exception: previousResult.exception,
+          graphqlErrors: fetchMoreResult.exception.graphqlErrors,
+          linkException: fetchMoreResult.exception.linkException,
+        );
+        return previousResult;
+      } else {
+        // TODO merge results OperationException
+        rethrow;
+      }
+    }
 
   return fetchMoreResult;
 }

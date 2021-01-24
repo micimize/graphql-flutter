@@ -159,6 +159,7 @@ class FetchMoreOptions {
     @Deprecated('Use `document` instead. Will be removed in 5.0.0')
         DocumentNode documentNode,
     this.variables = const {},
+    this.errorPolicy,
     @required this.updateQuery,
   })  : assert(updateQuery != null),
         this.document = document ?? documentNode;
@@ -182,6 +183,12 @@ class FetchMoreOptions {
   DocumentNode document;
 
   Map<String, dynamic> variables;
+
+  /// Override the original query's [ErrorPolicy].
+  ///
+  /// If `errorPolicy != ErrorPolicy.none`, the client will attempt [updateQuery].
+  /// If that fails, or if `errorPolicy == ErrorPolicy.none`, the exception will be thrown.
+  ErrorPolicy errorPolicy;
 
   /// Strategy for merging the fetchMore result data
   /// with the result data already in the cache
